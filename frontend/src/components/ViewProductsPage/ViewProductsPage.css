@@ -1,0 +1,152 @@
+.view-products-page {
+  padding: 20px;
+}
+
+.products-container,
+.bids-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.product-card,
+.bid-card,
+.buyer-details-card {
+  border: 1px solid #ccc;
+  padding: 15px;
+  border-radius: 8px;
+  width: 250px;
+  background-color: #f9f9f9;
+}
+
+.product-card h3,
+.bid-card p,
+.buyer-details-card p {
+  margin: 5px 0;
+}
+
+button {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+
+
+
+
+/* General styling */
+.view-products-page {
+    max-width: 800px;
+    margin: 100px auto 50px; /* Adjust for navbar */
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .view-products-page h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  /* Table styling */
+  .products-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .products-table th,
+  .products-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .products-table th {
+    background-color: #343a40;
+    color: #fff;
+  }
+  
+  .products-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .products-table tr:hover {
+    background-color: #ddd;
+  }
+  
+  /* Navbar adjustments */
+  .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #343a40;
+    color: #fff;
+    padding: 10px 20px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+  
+  .navbar ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  
+  .navbar ul li {
+    display: inline;
+  }
+  
+  .navbar ul li a, .navbar ul li button {
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    margin: 0 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+  }
+  
+  .navbar ul li a:hover, .navbar ul li button:hover {
+    background-color: #495057;
+  }
+  
+  .logout-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 5px 10px;
+    border-radius: 4px;
+  }
+  
+  .logout-btn:hover {
+    background-color: #495057;
+  }
+  .winning-bid {
+    border: 2px solid green;
+    background-color: #d4f5d4;
+  }
+  
+  .winning-label {
+    color: green;
+    font-weight: bold;
+  }
+  

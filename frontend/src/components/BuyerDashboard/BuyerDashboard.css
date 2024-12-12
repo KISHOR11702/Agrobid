@@ -1,0 +1,82 @@
+.buyer-dashboard {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    text-align: center;
+  }
+  
+  .buyer-dashboard h1 {
+    color: #2a9d8f;
+    margin-bottom: 20px;
+  }
+  
+  .products-section, .bids-section {
+    margin-bottom: 30px;
+  }
+  
+  .products-section h2, .bids-section h2 {
+    color: #264653;
+  }
+  
+  .products-section ul, .bids-section ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .products-section li, .bids-section li {
+    margin: 15px 0;
+    font-size: 1.1rem;
+    color: #2f3e46;
+  }
+  
+  .products-section input {
+    padding: 8px;
+    margin-top: 10px;
+    width: 200px;
+    border: 1px solid #b2dfdb;
+    border-radius: 5px;
+  }
+  
+  .bids-section ul {
+    background: #e9ecef;
+    border-radius: 8px;
+    padding: 10px;
+  }
+  
+  input[type="number"] {
+    font-size: 1rem;
+    color: #264653;
+  }
+  
+  input[type="number"]::placeholder {
+    color: #6c757d;
+  }
+  
+  input:focus {
+    outline: none;
+    border-color: #52b788;
+  }
+  
+  .error-message {
+    color: red;
+    font-size: 0.9rem;
+  }
+  
+  ul li strong {
+    color: #1b4332;
+  }
+   .logout-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  /* .logout-btn:hover {
+    background-color: #ff3333;
+  }  */
+  

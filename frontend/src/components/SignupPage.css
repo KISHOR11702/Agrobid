@@ -1,0 +1,111 @@
+/* Signup Page Styling */
+.signup-page {
+  max-width: 1200px; /* Increased width for a larger form */
+  margin: 50px auto;
+  padding: 50px;
+  background-color: #ffffff;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.15); /* Deeper shadow for emphasis */
+  border-radius: 12px; /* Rounded corners for modern look */
+  text-align: center;
+}
+
+/* Styling for the header */
+.signup-page h2 {
+  font-size: 2.6rem; /* Larger header for wider form */
+  font-weight: 600;
+  margin-bottom: 40px;
+  color: #2d6a4f; /* Nature-inspired color */
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border-bottom: 4px solid #40916c; /* More prominent border */
+  padding-bottom: 15px;
+}
+
+/* Form groups styling */
+.form-group {
+  margin-bottom: 30px;
+  display: flex; /* Flex layout for aligned form elements */
+  flex-direction: column; /* Stack label and input vertically */
+  gap: 10px; /* Add space between label and input */
+  align-items: flex-start; /* Align content to the left */
+}
+
+/* Label Styling */
+label {
+  font-size: 1.4rem; /* Larger font size for labels */
+  color: #333;
+  font-weight: 500;
+}
+
+/* Input and Select Fields */
+input,
+select {
+  width: 95%; /* Scale inputs to take up most of the form width */
+  padding: 16px; /* Increased padding for larger fields */
+  font-size: 1.2rem; /* Slightly larger text size */
+  border: 1px solid #b7e4c7; /* Soft green border */
+  border-radius: 10px; /* Slightly more rounded corners */
+  margin-top: 5px;
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus,
+select:focus {
+  border-color: #2d6a4f; /* Focused border color */
+  box-shadow: 0 0 8px rgba(45, 106, 79, 0.5); /* Stronger glow on focus */
+}
+
+/* Error Message */
+.error {
+  color: #e74c3c;
+  font-size: 1rem;
+  margin-top: 5px;
+}
+
+/* Submit Button Styling */
+.submit-btn {
+  width: 95%; /* Align button width with form fields */
+  padding: 18px; /* Slightly larger button */
+  background-color: #40916c; /* Green button */
+  color: white;
+  font-size: 1.4rem; /* Larger font size */
+  border: none;
+  border-radius: 10px; /* Match rounded corners with inputs */
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15); /* Stronger shadow for depth */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.submit-btn:hover {
+  background-color: #2d6a4f;
+  transform: translateY(-3px); /* Slightly higher lift effect */
+}
+
+.submit-btn:active {
+  background-color: #1b4332; /* Darker shade on click */
+  transform: translateY(1px); /* Subtle press effect */
+}
+
+/* Responsive Design for smaller screens */
+@media (max-width: 768px) {
+  .signup-page {
+    padding: 20px;
+    max-width: 95%; /* Allow form to fill smaller screens */
+  }
+
+  .signup-page h2 {
+    font-size: 2.2rem;
+  }
+
+  input,
+  select {
+    padding: 14px;
+    font-size: 1.1rem;
+  }
+
+  .submit-btn {
+    padding: 16px;
+  }
+}

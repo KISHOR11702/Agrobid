@@ -1,0 +1,84 @@
+/* AuthPage.css */
+.auth-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(to bottom, #d8f3dc, #b7e4c7, #95d5b2);
+  font-family: 'Poppins', sans-serif; /* Modern, clean font */
+  color: #2d6a4f;
+}
+
+.auth-page h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: #081c15;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+  letter-spacing: 1px;
+}
+
+.auth-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px; /* Even spacing between buttons */
+  width: 100%;
+  max-width: 300px;
+}
+
+.auth-btn {
+  width: 100%; /* Full width for consistent alignment */
+  padding: 15px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border: 2px solid #2d6a4f; /* Define border */
+  border-radius: 8px;
+  cursor: pointer;
+  background-color: #40916c; /* Base green color */
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.auth-btn:hover {
+  background-color: #1b4332; /* Darker shade for hover */
+  color: #d8f3dc; /* Contrasting lighter text */
+  transform: translateY(-2px); /* Subtle lift effect */
+  box-shadow: 4px 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.auth-btn:active {
+  background-color: #081c15; /* Deep shade for click */
+  transform: translateY(2px); /* Pressed-down effect */
+  box-shadow: inset 2px 4px 6px rgba(0, 0, 0, 0.4);
+}
+
+.auth-footer {
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: #344e41;
+}
+
+.auth-footer a {
+  color: #2d6a4f;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+.auth-footer a:hover {
+  color: #081c15;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .auth-page h2 {
+      font-size: 2rem;
+  }
+
+  .auth-btn {
+      font-size: 1rem;
+      padding: 12px;
+  }
+}

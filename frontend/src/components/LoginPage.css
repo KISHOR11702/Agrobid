@@ -1,0 +1,108 @@
+/* Login Page Styling */
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+ /* background-color: #f4f4f4; /* Light background color for a clean look */
+}
+
+.login-form {
+  width: 100%;
+  max-width: 400px;
+  padding: 50px;
+  background-color: #ffffff;
+  border-radius: 12px; /* Rounded corners for a smoother look */
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  text-align: center; /* Center content in the form */
+}
+
+/* Styling for the Header */
+.login-form h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: #2d6a4f; /* Nature-inspired color */
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border-bottom: 3px solid #40916c; /* Underline the header */
+  padding-bottom: 10px;
+}
+
+/* Label Styling */
+.login-form label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Input Styling */
+.login-form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: #f9f9f9; /* Soft background for inputs */
+  transition: border-color 0.3s, background-color 0.3s ease;
+}
+
+.login-form input:focus {
+  border-color: #2d6a4f; /* Focus border color */
+  background-color: #ffffff; /* Clear background on focus */
+  box-shadow: 0 0 8px rgba(45, 106, 79, 0.5); /* Glow effect on focus */
+}
+
+/* Button Styling */
+.login-form button {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  background-color: #40916c; /* Green button for nature theme */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.login-form button:hover {
+  background-color: #2d6a4f; /* Darker green on hover */
+  transform: translateY(-2px); /* Lift effect on hover */
+}
+
+.login-form button:active {
+  background-color: #1b4332; /* Darker shade when clicked */
+  transform: translateY(2px); /* Press effect */
+}
+
+/* Error Message Styling */
+.login-form .error-message {
+  color: #e74c3c; /* Red color for errors */
+  font-size: 1rem;
+  margin-bottom: 15px;
+  text-align: left;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-form {
+    padding: 20px;
+    max-width: 90%;
+  }
+
+  .login-form h2 {
+    font-size: 1.8rem;
+  }
+
+  .login-form input,
+  .login-form button {
+    padding: 10px;
+    font-size: 1rem;
+  }
+}
