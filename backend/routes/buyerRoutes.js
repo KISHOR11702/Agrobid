@@ -28,6 +28,52 @@ router.get('/details', authenticateToken, async (req, res) => {
   }
 });
 
+// Route to fetch buyer details by buyer ID (for viewing bids page)
+router.get('/details/:buyerId', authenticateToken, async (req, res) => {
+  try {
+    const { buyerId } = req.params;
+    
+    // Get basic customer info
+    const customer = await Customer.findById(buyerId).select('name email');
+    if (!customer) {
+      return res.status(404).json({ message: 'Buyer not found' });
+    }
+    
+    // Get detailed buyer info
+    const buyerDetails = await BuyerDetails.findOne({ buyerId });
+    
+    // Combine the information with backward compatibility
+    const combinedInfo = {
+      name: customer.name,
+      email: customer.email,
+      // New format fields
+      phoneNumber: buyerDetails?.phoneNumber || buyerDetails?.phone || 'Not provided',
+      alternativePhoneNumber: buyerDetails?.alternativePhoneNumber || null,
+      address: buyerDetails?.address || 'Not provided',
+      city: buyerDetails?.city || 'Not provided', 
+      state: buyerDetails?.state || 'Not provided',
+      pinCode: buyerDetails?.pinCode || null,
+      companyName: buyerDetails?.companyName || null,
+      businessType: buyerDetails?.businessType || null,
+      gstNumber: buyerDetails?.gstNumber || null,
+      interestedCategories: buyerDetails?.interestedCategories || [],
+      minBudget: buyerDetails?.minBudget || null,
+      maxBudget: buyerDetails?.maxBudget || null,
+      purchaseFrequency: buyerDetails?.purchaseFrequency || null,
+      // Legacy fields for backward compatibility
+      location: buyerDetails?.location || `${buyerDetails?.city || ''}, ${buyerDetails?.state || ''}`.trim().replace(/^,\s*|,\s*$/g, '') || 'Not provided',
+      phone: buyerDetails?.phone || buyerDetails?.phoneNumber || 'Not provided',
+      detailsFilled: buyerDetails?.detailsFilled || false,
+      ...buyerDetails?.toObject(),
+    };
+    
+    res.json(combinedInfo);
+  } catch (error) {
+    console.error('Error fetching buyer details:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Route to fetch available products
 router.get('/available-products', authenticateToken, async (req, res) => {
   try {

@@ -71,7 +71,12 @@ router.post('/login', async (req, res) => {
     );
     console.log('Generated token:', token);
     // Respond with the token and user role
-    res.status(200).json({ token, role: user.role, farmerName: user.name });
+    res.status(200).json({ 
+      token, 
+      role: user.role, 
+      farmerName: user.name,
+      userId: user._id 
+    });
   } catch (error) {
     console.error('Error during login:', error);
     res.status(500).json({ message: 'Server error' });

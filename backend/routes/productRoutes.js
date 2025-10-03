@@ -41,12 +41,19 @@ const upload = multer({
 // Route to add a new product
 router.post('/add-product', authenticateToken, upload.single('video'), async (req, res) => {
   try {
-    const { name, price, quantity, category, unit, duration } = req.body;
+    const { name, price, quantity, category, unit, bidEndDate } = req.body;
     const farmerId = req.user.id;
 
     // Check if all required fields are present
-    if (!name || !price || !quantity || !category || !unit || !duration || !req.file) {
+    if (!name || !price || !quantity || !category || !unit || !bidEndDate || !req.file) {
       return res.status(400).json({ message: 'All fields, including video, are required' });
+    }
+
+    // Validate that bidEndDate is in the future
+    const endDate = new Date(bidEndDate);
+    const currentDate = new Date();
+    if (endDate <= currentDate) {
+      return res.status(400).json({ message: 'Bid end date must be in the future' });
     }
 
     // Create a new product
@@ -56,9 +63,9 @@ router.post('/add-product', authenticateToken, upload.single('video'), async (re
       quantity,
       category,
       unit,
-      video: req.file.path, // Save the video file path
+      video: `http://localhost:5000/uploads/${req.file.filename}`, // Save the video file URL
       farmerId,
-      duration,
+      bidEndDate: new Date(bidEndDate),
     });
 
     // Save the product to the database

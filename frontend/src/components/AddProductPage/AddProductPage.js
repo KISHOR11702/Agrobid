@@ -11,7 +11,7 @@ function AddProductsPage() {
     video: null,
     category: '',
     unit: '',
-    duration: '',
+    bidEndDate: '',
   });
 
   const [error, setError] = useState('');
@@ -57,8 +57,16 @@ function AddProductsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!product.name || !product.price || !product.quantity || !product.category || !product.unit || !product.duration || !product.video) {
+    if (!product.name || !product.price || !product.quantity || !product.category || !product.unit || !product.bidEndDate || !product.video) {
       setError('All fields are required, including the video file.');
+      return;
+    }
+
+    // Validate that bid end date is in the future
+    const selectedDate = new Date(product.bidEndDate);
+    const currentDate = new Date();
+    if (selectedDate <= currentDate) {
+      setError('Bid end date must be in the future.');
       return;
     }
 
@@ -68,7 +76,7 @@ function AddProductsPage() {
     formData.append('quantity', product.quantity);
     formData.append('category', product.category);
     formData.append('unit', product.unit);
-    formData.append('duration', product.duration);
+    formData.append('bidEndDate', product.bidEndDate);
     formData.append('video', product.video);
 
     const token = localStorage.getItem('token'); // Get the token from localStorage
@@ -171,14 +179,14 @@ function AddProductsPage() {
           </div>
         </div>
         <div className="form-group">
-          <label htmlFor="duration">Duration (in days)</label>
+          <label htmlFor="bidEndDate">Bidding End Date & Time</label>
           <input
-            type="number"
-            id="duration"
-            name="duration"
-            placeholder="Enter duration in days"
-            value={product.duration}
+            type="datetime-local"
+            id="bidEndDate"
+            name="bidEndDate"
+            value={product.bidEndDate}
             onChange={handleChange}
+            min={new Date().toISOString().slice(0, 16)}
           />
         </div>
         <div className="form-group">

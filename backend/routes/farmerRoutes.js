@@ -44,4 +44,37 @@ router.get('/check-details', authenticateToken, async (req, res) => {
   }
 });
 
+// Route to get specific farmer details by farmerId (accessible by buyers for verification)
+router.get('/details/:farmerId', authenticateToken, async (req, res) => {
+  try {
+    const { farmerId } = req.params;
+
+    // Get farmer basic info
+    const farmer = await Customer.findById(farmerId);
+    if (!farmer || farmer.role !== 'farmer') {
+      return res.status(404).json({ message: 'Farmer not found' });
+    }
+
+    // Get farmer additional details
+    const farmerDetails = await FarmerDetails.findOne({ farmerId });
+    
+    // Combine farmer info with details
+    const completeDetails = {
+      _id: farmer._id,
+      name: farmer.name,
+      email: farmer.email,
+      joinedDate: farmer.createdAt,
+      location: farmerDetails?.location || 'Not provided',
+      phone: farmerDetails?.phone || 'Not provided',
+      address: farmerDetails?.address || 'Not provided',
+      detailsFilled: farmerDetails?.detailsFilled || false
+    };
+
+    res.status(200).json(completeDetails);
+  } catch (error) {
+    console.error('Error fetching farmer details:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

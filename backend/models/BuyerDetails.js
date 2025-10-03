@@ -8,22 +8,77 @@ const buyerDetailsSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  location: {
+  // Contact Information
+  phoneNumber: {
     type: String,
     required: true,
   },
-  phone: {
+  alternativePhoneNumber: {
     type: String,
-    required: true,
+    required: false,
   },
+  // Address Information
   address: {
     type: String,
     required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  state: {
+    type: String,
+    required: true,
+  },
+  pinCode: {
+    type: String,
+    required: false,
+  },
+  // Business Information
+  companyName: {
+    type: String,
+    required: false,
+  },
+  businessType: {
+    type: String,
+    required: false,
+  },
+  gstNumber: {
+    type: String,
+    required: false,
+  },
+  // Purchase Preferences
+  interestedCategories: [{
+    type: String,
+    required: false,
+  }],
+  minBudget: {
+    type: Number,
+    required: false,
+  },
+  maxBudget: {
+    type: Number,
+    required: false,
+  },
+  purchaseFrequency: {
+    type: String,
+    required: false,
+  },
+  // Legacy fields for backward compatibility
+  location: {
+    type: String,
+    required: false, // Made optional for backward compatibility
+  },
+  phone: {
+    type: String,
+    required: false, // Made optional for backward compatibility
   },
   detailsFilled: {
     type: Boolean,
     default: false,
   },
+}, {
+  timestamps: true, // Adds createdAt and updatedAt fields
 });
 
 // Create and export the model

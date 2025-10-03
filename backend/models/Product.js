@@ -31,9 +31,23 @@ const productSchema = new mongoose.Schema({
     ref: 'FarmerDetails',
     required: true, // Reference to the farmer adding the product
   },
-  duration: {
-    type: Number, // Duration in days
-    required: true,
+  bidEndDate: {
+    type: Date,
+    required: true, // Specific end date for bidding
+  },
+  status: {
+    type: String,
+    enum: ['active', 'expired', 'sold'],
+    default: 'active',
+  },
+  highestBid: {
+    amount: { type: Number, default: 0 },
+    buyerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+    buyerName: { type: String, default: '' }
+  },
+  totalBids: {
+    type: Number,
+    default: 0,
   },
   createdAt: {
     type: Date,
@@ -41,11 +55,17 @@ const productSchema = new mongoose.Schema({
   },
 });
 
-// Method to check if the product has expired
+// Method to check if the product bidding has expired
 productSchema.methods.isExpired = function() {
-  const expiryDate = new Date(this.createdAt);
-  expiryDate.setDate(expiryDate.getDate() + this.duration);
-  return new Date() > expiryDate; // If current date is greater than expiry date, product is expired
+  return new Date() > this.bidEndDate;
+};
+
+// Method to update product status based on bidding end date
+productSchema.methods.updateStatus = function() {
+  if (this.isExpired() && this.status === 'active') {
+    this.status = 'expired';
+  }
+  return this.status;
 };
 
 // Create and export the model

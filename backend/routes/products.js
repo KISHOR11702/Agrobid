@@ -15,6 +15,23 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Fetch a single product by ID (for viewing bids)
+router.get('/:id', authenticateToken, async (req, res) => {
+  try {
+    const productId = req.params.id;
+    const product = await Product.findById(productId).populate('farmerId', 'name');
+    
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    
+    res.status(200).json(product);
+  } catch (error) {
+    console.error('Error fetching product:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Update a product
 router.put('/:id', authenticateToken, async (req, res) => {
   const productId = req.params.id;
@@ -56,6 +73,18 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     res.status(200).json({ message: 'Product deleted successfully.' });
   } catch (error) {
     console.error('Error deleting product:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Fetch products by farmer ID (for buyers to view farmer's products)
+router.get('/farmer/:farmerId', authenticateToken, async (req, res) => {
+  try {
+    const { farmerId } = req.params;
+    const products = await Product.find({ farmerId }).populate('farmerId', 'name');
+    res.status(200).json(products);
+  } catch (error) {
+    console.error('Error fetching farmer products:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

@@ -48,31 +48,13 @@ function ViewProductsPage() {
     }
   };
 
-  // View buyer details
-  const viewBuyerDetails = async (buyerId) => {
-    const token = localStorage.getItem('token');
+  // Navigate to buyer details page
+  const viewBuyerDetails = (buyerId) => {
     if (!buyerId) {
       alert('No buyer selected.');
       return;
     }
-
-    try {
-      const response = await axios.get(`http://localhost:5000/api/bids/buyer/${buyerId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.data) {
-        console.log('Buyer Details:', response.data);
-        setBuyerDetails([response.data]); // Wrap the response in an array for consistent rendering
-      } else {
-        alert('No details found for this buyer.');
-      }
-    } catch (error) {
-      console.error('Error fetching buyer details:', error);
-      alert('Failed to load buyer details. Please try again later.');
-    }
+    navigate(`/buyer-details/${buyerId}`);
   };
 
   // Select a winning bid
@@ -182,10 +164,26 @@ function ViewProductsPage() {
           <h3>Bids for Product</h3>
           {bids.map((bid) => (
             <div key={bid._id} className="bid-card">
-              <p>Bid Amount: ₹{bid.amount}</p>
-              <p>Buyer: {bid.buyerId?.name || 'Unknown'}</p>
-              <button onClick={() => selectWinningBid(bid._id)}>Select as Winning Bid</button>
-              <button onClick={() => viewBuyerDetails(bid.buyerId?._id)}>View Buyer Details</button>
+              <div className="bid-info">
+                <p className="bid-amount">💰 Bid Amount: ₹{bid.amount?.toLocaleString('en-IN')}</p>
+                <p className="buyer-name">👤 Buyer: {bid.buyerId?.name || 'Unknown'}</p>
+              </div>
+              <div className="bid-actions">
+                <button 
+                  onClick={() => selectWinningBid(bid._id)} 
+                  className="select-winner-btn"
+                  title="Select this bid as the winner"
+                >
+                  🏆 Select Winner
+                </button>
+                <button 
+                  onClick={() => viewBuyerDetails(bid.buyerId?._id)} 
+                  className="view-details-btn"
+                  title="View complete buyer profile and history"
+                >
+                  👤 View Details
+                </button>
+              </div>
             </div>
           ))}
         </div>

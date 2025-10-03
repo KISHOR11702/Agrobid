@@ -1,0 +1,765 @@
+/* View Product Bids - Clean Modern UI */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.view-bids-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar Styling */
+.navbar {
+  background: linear-gradient(135deg, #2E7D32, #4CAF50);
+  color: white;
+  padding: 1rem 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-brand {
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 2rem;
+  align-items: center;
+}
+
+.nav-links a,
+.nav-btn {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.nav-links a:hover,
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Main Content */
+.main-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Loading and Error States */
+.loading-container,
+.error-container {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4CAF50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+/* Header Section */
+.header-section {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.back-button {
+  position: absolute;
+  left: 2rem;
+  top: 2rem;
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.3);
+}
+
+.back-btn {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+}
+
+.header-section h1 {
+  font-size: 2.5rem;
+  color: #2E7D32;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.header-section p {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Product Summary */
+.product-summary {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: center;
+}
+
+.product-info h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.product-meta {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.meta-item strong {
+  color: #333;
+}
+
+.bid-summary {
+  display: flex;
+  gap: 2rem;
+}
+
+.summary-stat {
+  text-align: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 16px;
+  min-width: 120px;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2E7D32;
+  margin-bottom: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Bids Section */
+.bids-section {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.bids-section h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+.empty-bids {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-bids h4 {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.empty-bids p {
+  color: #666;
+}
+
+/* Bids Grid */
+.bids-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Bid Card */
+.bid-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.bid-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+}
+
+.bid-card.winning-bid {
+  border-color: #FFD700;
+  background: linear-gradient(135deg, #fff9c4, #ffffff);
+  box-shadow: 0 8px 24px rgba(255, 215, 0, 0.2);
+}
+
+.winning-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+/* Bid Header */
+.bid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.bid-amount {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.amount {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2E7D32;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.bid-time {
+  color: #666;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Buyer Info */
+.buyer-info {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.buyer-avatar {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.buyer-details {
+  flex: 1;
+}
+
+.buyer-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.75rem;
+}
+
+.buyer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Section Headers */
+.contact-section-title, .address-section-title, .business-section-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #2E7D32;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid #4CAF50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Section Containers */
+.contact-section, .address-section, .business-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #e8f5e8;
+}
+
+.contact-section {
+  border-left: 4px solid #4CAF50;
+  background: linear-gradient(135deg, #f0fff0, #f8fff8);
+}
+
+.address-section {
+  border-left: 4px solid #2196F3;
+  background: linear-gradient(135deg, #f0f8ff, #f8fbff);
+}
+
+.business-section {
+  border-left: 4px solid #FF9800;
+  background: linear-gradient(135deg, #fff8f0, #fffbf8);
+}
+
+.meta-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.meta-row:last-child {
+  margin-bottom: 0;
+}
+
+.meta-row.contact-row.primary-contact {
+  background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 2px solid #4CAF50;
+  margin-bottom: 1rem;
+}
+
+.meta-row.contact-row {
+  background: rgba(76, 175, 80, 0.1);
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.meta-row.address-row {
+  background: rgba(33, 150, 243, 0.1);
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.meta-row.business-row {
+  background: rgba(255, 152, 0, 0.1);
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.meta-row .label {
+  color: #666;
+  font-weight: 600;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.meta-row .value {
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  word-break: break-word;
+}
+
+.contact-number, .contact-email {
+  font-weight: bold !important;
+  color: #2E7D32 !important;
+}
+
+.address-text {
+  font-weight: 500 !important;
+  color: #1976D2 !important;
+}
+
+.company-name {
+  font-weight: bold !important;
+  color: #F57C00 !important;
+}
+
+.call-btn-small, .email-btn-small {
+  background: linear-gradient(135deg, #4CAF50, #66bb6a);
+  color: white !important;
+  text-decoration: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.email-btn-small {
+  background: linear-gradient(135deg, #2196F3, #42a5f5);
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+}
+
+.call-btn-small:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+  background: linear-gradient(135deg, #388E3C, #4CAF50);
+}
+
+.email-btn-small:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(33, 150, 243, 0.4);
+  background: linear-gradient(135deg, #1976D2, #2196F3);
+}
+
+.no-details {
+  color: #999;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Bid Status */
+.bid-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-indicator {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-indicator.active {
+  background: linear-gradient(135deg, #2196F3, #1976D2);
+  color: white;
+}
+
+.status-indicator.won {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+}
+
+.status-indicator.lost {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: white;
+}
+
+.winner-tag {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Timeline Section */
+.timeline-section {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-section h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, #4CAF50, #2E7D32);
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 2rem;
+  padding-left: 2rem;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: -8px;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  background: #4CAF50;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.timeline-content {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 12px;
+  border-left: 4px solid #4CAF50;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.timeline-amount {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2E7D32;
+}
+
+.timeline-time {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.timeline-buyer {
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .product-summary {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  
+  .bid-summary {
+    justify-content: center;
+  }
+  
+  .bids-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+  
+  .navbar {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .nav-links {
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .header-section {
+    padding: 1.5rem;
+  }
+  
+  .back-button {
+    position: static;
+    margin-bottom: 1rem;
+  }
+  
+  .header-section h1 {
+    font-size: 2rem;
+  }
+  
+  .product-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+  }
+  
+  .bid-summary {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .timeline {
+    padding-left: 1.5rem;
+  }
+  
+  .timeline-item {
+    padding-left: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bid-card {
+    padding: 1rem;
+  }
+  
+  .buyer-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .buyer-meta {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .contact-section, .address-section, .business-section {
+    padding: 0.75rem;
+  }
+  
+  .meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .meta-row .value {
+    width: 100%;
+  }
+  
+  .call-btn-small, .email-btn-small {
+    margin-left: 0;
+    margin-top: 0.25rem;
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .timeline-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}

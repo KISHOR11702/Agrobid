@@ -10,6 +10,9 @@ import AddProductPage from './components/AddProductPage/AddProductPage'; // Add 
 import ViewProductsPage from './components/ViewProductsPage/ViewProductsPage'; // View Products Page
 import AvailableProducts from './components/AvailableProductsPage/AvailableProductsPage'; // Available Products Page
 import YourBids from './components/YourBids/YourBids'; // Your Bids Page
+import ViewProductBids from './components/ViewProductBids/ViewProductBids'; // View Product Bids Page
+import BuyerDetailsView from './components/BuyerDetailsView/BuyerDetailsView'; // Buyer Details View Page
+import FarmerDetailsView from './components/FarmerDetailsView/FarmerDetailsView'; // Farmer Details View Page
 import AddFarmerDetailsPage from './components/AddFarmerDetailsPage/AddFarmerDetailsPage';
 import AddBuyerDetailsPage from './components/AddBuyerDetailsPage/AddBuyerDetailsPage'; // Import the AddBuyerDetailsPage component
 import ForgotPasswordPage from './components/ForgotPasswordPage/ForgotPasswordPage'; // Import the new page
@@ -47,6 +50,9 @@ function App() {
           <Route path="/view-products" element={<ViewProductsPage />} /> {/* View Products Page */}
           <Route path="/available-products" element={<AvailableProducts />} /> {/* Available Products Page */}
           <Route path="/your-bids" element={<YourBids />} /> {/* Your Bids Page */}
+          <Route path="/product-bids/:productId" element={<ViewProductBids />} /> {/* View Product Bids Page */}
+          <Route path="/buyer-details/:buyerId" element={<BuyerDetailsView />} /> {/* Buyer Details View Page */}
+          <Route path="/farmer-details/:farmerId" element={<FarmerDetailsView />} /> {/* Farmer Details View Page */}
           <Route path="/add-details" element={<AddFarmerDetailsPage />} />
           <Route path="/add-buyer-details" element={<AddBuyerDetailsPage />} /> {/* Add Buyer Details */}
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />

@@ -4,6 +4,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const http = require('http');
+const socketIo = require('socket.io');
 const authRoute = require('./routes/auth'); // Import auth routes
 const farmerRoutes = require('./routes/farmerRoutes'); // Import farmer routes
 const farmerDetailsRoutes = require('./routes/farmerDetails'); // Import farmer details routes
@@ -16,10 +18,25 @@ const buyersRoute = require('./routes/buyers');
 const availableProductRoutes = require('./routes/availableProducts'); // Updated path to the new file
 const path = require('path');
 const mime = require('mime');
+const BidManagementService = require('./services/bidManagementService');
 //const helmet = require('helmet');
 
-// Initialize Express app
+// Initialize Express app and HTTP server
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.IO with CORS configuration
+const io = socketIo(server, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["my-custom-header"],
+    credentials: true
+  }
+});
+
+// Make io accessible to routes
+app.set('io', io);
 
 // Middleware
 app.use(cors());
@@ -30,7 +47,7 @@ app.use('/uploads', (req, res, next) => {
 }, express.static(path.join(__dirname, 'uploads')));
 // MongoDB connection
 const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/AgroBidding';
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(mongoURI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
@@ -58,6 +75,42 @@ app.use('/api/availableProducts', availableProductRoutes); // New route for avai
 //     },
 //   })
 // );
+// Initialize Bid Management Service
+const bidManagementService = new BidManagementService(io);
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  // Join product room for real-time updates
+  socket.on('join-product', (productId) => {
+    socket.join(`product-${productId}`);
+    console.log(`User ${socket.id} joined product room: product-${productId}`);
+  });
+
+  // Leave product room
+  socket.on('leave-product', (productId) => {
+    socket.leave(`product-${productId}`);
+    console.log(`User ${socket.id} left product room: product-${productId}`);
+  });
+
+  // Join user-specific room for personal notifications
+  socket.on('join-user', (userId) => {
+    socket.join(`user-${userId}`);
+    console.log(`User ${socket.id} joined personal room: user-${userId}`);
+  });
+
+  // Manual trigger for testing (admin only)
+  socket.on('trigger-winner-selection', async (productId) => {
+    const success = await bidManagementService.triggerWinnerSelection(productId);
+    socket.emit('trigger-result', { success, productId });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
 // Start the server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
