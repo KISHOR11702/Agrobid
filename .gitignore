@@ -5,3 +5,6 @@
 
 # Runtime upload artifacts
 backend/uploads/
+
+# Local helper script not for GitHub
+start-servers.sh
