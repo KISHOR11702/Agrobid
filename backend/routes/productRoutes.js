@@ -4,13 +4,14 @@ const Product = require('../models/Product');
 const authenticateToken = require('../middleware/auth');
 const fs = require('fs');
 const path = require('path');
+const cloudinary = require('../config/cloudinary');
 
 const router = express.Router();
 
-// Multer configuration for file uploads
+// Multer configuration for temporary file uploads before Cloudinary upload
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.join(__dirname, '../uploads'); 
+    const uploadPath = path.join(__dirname, '../uploads/tmp');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -38,6 +39,18 @@ const upload = multer({
   },
 });
 
+const removeTempFile = async (filePath) => {
+  if (!filePath) return;
+
+  try {
+    await fs.promises.unlink(filePath);
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      console.error('Failed to remove temp upload file:', error.message);
+    }
+  }
+};
+
 // Route to add a new product
 router.post('/add-product', authenticateToken, upload.single('video'), async (req, res) => {
   try {
@@ -56,6 +69,23 @@ router.post('/add-product', authenticateToken, upload.single('video'), async (re
       return res.status(400).json({ message: 'Bid end date must be in the future' });
     }
 
+    const hasCloudinaryConfig =
+      (process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_NAME) &&
+      (process.env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_KEY) &&
+      (process.env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_SECRET);
+
+    if (!hasCloudinaryConfig) {
+      await removeTempFile(req.file?.path);
+      return res.status(500).json({ message: 'Cloudinary is not configured on the server' });
+    }
+
+    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+      resource_type: 'video',
+      folder: 'agrobidding/products',
+      use_filename: true,
+      unique_filename: true,
+    });
+
     // Create a new product
     const newProduct = new Product({
       name,
@@ -63,7 +93,8 @@ router.post('/add-product', authenticateToken, upload.single('video'), async (re
       quantity,
       category,
       unit,
-      video: `http://localhost:5000/uploads/${req.file.filename}`, // Save the video file URL
+      video: uploadResult.secure_url,
+      cloudinaryPublicId: uploadResult.public_id,
       farmerId,
       bidEndDate: new Date(bidEndDate),
     });
@@ -71,8 +102,11 @@ router.post('/add-product', authenticateToken, upload.single('video'), async (re
     // Save the product to the database
     await newProduct.save();
 
+    await removeTempFile(req.file?.path);
+
     res.status(201).json({ message: 'Product added successfully!' });
   } catch (error) {
+    await removeTempFile(req.file?.path);
     console.error('Error adding product:', error);
     res.status(500).json({ message: 'Server error' });
   }

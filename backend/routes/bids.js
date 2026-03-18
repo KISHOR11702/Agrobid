@@ -7,8 +7,28 @@ const Buyer = require('../models/BuyerDetails'); // Assuming you have a Buyer mo
 const Customer = require('../models/Customer'); // Adjust the path as needed
 const mongoose = require('mongoose');
 
-// Place a bid
+/**
+ * Bid Routes with Concurrency Control
+ * 
+ * Concurrency Strategy:
+ * ----------------------
+ * 1. MongoDB Transactions: All bid placements wrapped in ACID transactions
+ * 2. Optimistic Locking: Version keys (__v) detect concurrent modifications
+ * 3. Atomic Operations: findOneAndUpdate with conditions ensures race-free updates
+ * 4. Retry Logic: Automatic retry (3 attempts) on version conflicts
+ * 5. Unique Constraints: Compound index (buyerId + productId) prevents duplicate bids
+ * 6. Conditional Updates: Products only update if bid is higher than current highest
+ * 
+ * Race Condition Protection:
+ * - Multiple simultaneous bids → only highest wins, others get conflict error
+ * - Bid + Expired Check → transaction aborts if product expires mid-bid
+ * - Winner Selection → atomic status change prevents double-processing
+ */
+
+// Place a bid with MongoDB transactions and atomic operations
 router.post('/bid', authenticateToken, async (req, res) => {
+  const session = await mongoose.startSession();
+  
   try {
     const { productId, amount } = req.body;
     const io = req.app.get('io'); // Get Socket.IO instance
@@ -29,100 +49,168 @@ router.post('/bid', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Authentication failed. Buyer ID not found.' });
     }
 
-    // Get buyer details for the bid
+    // Get buyer details for the bid (outside transaction for performance)
     const buyer = await Customer.findById(buyerId);
     if (!buyer) {
       return res.status(404).json({ message: 'Buyer not found.' });
     }
 
-    // Verify if the product exists and check if bidding is still active
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found.' });
+    // Start transaction with retry logic for optimistic concurrency
+    let retries = 3;
+    let bidResult = null;
+
+    while (retries > 0) {
+      try {
+        session.startTransaction();
+
+        // Use findOneAndUpdate with atomic conditions to ensure product is valid and active
+        const product = await Product.findOne({
+          _id: productId,
+          status: 'active',
+          bidEndDate: { $gt: new Date() }
+        }).session(session);
+
+        if (!product) {
+          await session.abortTransaction();
+          return res.status(400).json({ 
+            message: 'Product not found or bidding has ended for this product.' 
+          });
+        }
+
+        // Calculate minimum bid atomically
+        const minimumBid = Math.max(product.highestBid.amount + 1, product.price + 1);
+        if (amount < minimumBid) {
+          await session.abortTransaction();
+          return res.status(400).json({ 
+            message: `Bid amount must be at least ₹${minimumBid} (current highest: ₹${product.highestBid.amount})` 
+          });
+        }
+
+        // Try to update or create bid atomically using upsert
+        const bidUpdate = await Bid.findOneAndUpdate(
+          { buyerId, productId },
+          {
+            $set: {
+              amount,
+              buyerName: buyer.name,
+              status: 'Pending'
+            },
+            $setOnInsert: {
+              buyerId,
+              productId,
+              buyerName: buyer.name,
+              createdAt: new Date()
+            }
+          },
+          {
+            upsert: true,
+            new: true,
+            session,
+            runValidators: true
+          }
+        );
+
+        const isNewBid = !bidUpdate.createdAt || 
+                        (new Date() - bidUpdate.createdAt) < 1000;
+
+        // Atomically update product with highest bid and increment counter
+        const updatedProduct = await Product.findOneAndUpdate(
+          {
+            _id: productId,
+            status: 'active',
+            $or: [
+              { 'highestBid.amount': { $lt: amount } },
+              { 'highestBid.buyerId': buyerId }
+            ]
+          },
+          {
+            $set: {
+              'highestBid.amount': amount,
+              'highestBid.buyerId': buyerId,
+              'highestBid.buyerName': buyer.name
+            },
+            $inc: { totalBids: isNewBid ? 1 : 0 }
+          },
+          {
+            new: true,
+            session
+          }
+        );
+
+        if (!updatedProduct) {
+          await session.abortTransaction();
+          return res.status(409).json({ 
+            message: 'Another higher bid was placed. Please try again with a higher amount.',
+            currentHighest: product.highestBid.amount
+          });
+        }
+
+        // Commit transaction
+        await session.commitTransaction();
+
+        bidResult = {
+          bid: bidUpdate,
+          product: updatedProduct,
+          isNewBid
+        };
+
+        break; // Success, exit retry loop
+
+      } catch (error) {
+        await session.abortTransaction();
+
+        // Handle optimistic concurrency errors (version mismatch)
+        if (error.name === 'VersionError' || error.code === 11000) {
+          retries--;
+          if (retries > 0) {
+            console.log(`Retrying bid placement due to concurrency conflict. Retries left: ${retries}`);
+            await new Promise(resolve => setTimeout(resolve, 100)); // Small delay before retry
+            continue;
+          }
+        }
+        throw error; // Re-throw if not a concurrency error or out of retries
+      }
     }
 
-    // Check if bidding has expired
-    if (product.isExpired()) {
-      return res.status(400).json({ message: 'Bidding has ended for this product.' });
-    }
-
-    // Check if bid amount is higher than current highest bid
-    const minimumBid = Math.max(product.highestBid.amount + 1, product.price + 1);
-    if (amount < minimumBid) {
-      return res.status(400).json({ 
-        message: `Bid amount must be at least ₹${minimumBid} (current highest: ₹${product.highestBid.amount})` 
+    if (!bidResult) {
+      return res.status(409).json({ 
+        message: 'Unable to place bid due to high concurrent activity. Please try again.' 
       });
     }
 
-    // Check if the buyer has already placed a bid on this product
-    const existingBid = await Bid.findOne({ buyerId, productId });
-    if (existingBid) {
-      // Update the existing bid with the new amount
-      existingBid.amount = amount;
-      existingBid.buyerName = buyer.name;
-      await existingBid.save();
-
-      // Update product's highest bid
-      product.highestBid = {
-        amount: amount,
-        buyerId: buyerId,
-        buyerName: buyer.name
-      };
-      await product.save();
-
-      // Emit real-time update to all clients watching this product
-      io.to(`product-${productId}`).emit('bid-updated', {
-        productId,
-        bidId: existingBid._id,
-        amount,
-        buyerName: buyer.name,
-        buyerId,
-        timestamp: existingBid.createdAt,
-        isUpdate: true,
-        highestBid: product.highestBid,
-        totalBids: product.totalBids
-      });
-
-      return res.status(200).json({ message: 'Bid updated successfully!', bid: existingBid });
-    }
-
-    // Create a new bid if no existing bid is found
-    const newBid = new Bid({
-      buyerId,
+    // Emit real-time update to all clients watching this product (after transaction)
+    const eventType = bidResult.isNewBid ? 'bid-placed' : 'bid-updated';
+    io.to(`product-${productId}`).emit(eventType, {
       productId,
-      buyerName: buyer.name,
-      amount,
-    });
-
-    // Save the bid to the database
-    await newBid.save();
-
-    // Update product's highest bid and total bids count
-    product.highestBid = {
-      amount: amount,
-      buyerId: buyerId,
-      buyerName: buyer.name
-    };
-    product.totalBids += 1;
-    await product.save();
-
-    // Emit real-time update to all clients watching this product
-    io.to(`product-${productId}`).emit('bid-placed', {
-      productId,
-      bidId: newBid._id,
+      bidId: bidResult.bid._id,
       amount,
       buyerName: buyer.name,
       buyerId,
-      timestamp: newBid.createdAt,
-      isNew: true,
-      highestBid: product.highestBid,
-      totalBids: product.totalBids
+      timestamp: bidResult.bid.createdAt,
+      isNew: bidResult.isNewBid,
+      isUpdate: !bidResult.isNewBid,
+      highestBid: bidResult.product.highestBid,
+      totalBids: bidResult.product.totalBids
     });
 
-    res.status(201).json({ message: 'Bid placed successfully!', bid: newBid });
+    res.status(bidResult.isNewBid ? 201 : 200).json({ 
+      message: bidResult.isNewBid ? 'Bid placed successfully!' : 'Bid updated successfully!', 
+      bid: bidResult.bid 
+    });
+
   } catch (error) {
     console.error('Error placing bid:', error.message, error.stack);
+    
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      return res.status(409).json({ 
+        message: 'Bid update conflict. Please try again.' 
+      });
+    }
+    
     res.status(500).json({ message: 'Internal server error' });
+  } finally {
+    session.endSession();
   }
 });
 

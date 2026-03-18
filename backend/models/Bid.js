@@ -1,5 +1,14 @@
 const mongoose = require('mongoose');
 
+/**
+ * Bid Schema with Concurrency Control
+ * 
+ * Features:
+ * - Optimistic concurrency control via __v (version key)
+ * - Compound unique index on (buyerId, productId) prevents duplicate bids
+ * - Indexed on (productId, amount) for efficient sorting and queries
+ */
+
 const bidSchema = new mongoose.Schema({
   productId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -23,6 +32,12 @@ const bidSchema = new mongoose.Schema({
   },
   status: { type: String, enum: ['Pending', 'Won', 'Lost'], default: 'Pending' },
   notified: { type: Boolean, default: false },
-});
+}, { optimisticConcurrency: true });
+
+// Compound index to ensure one bid per buyer per product
+bidSchema.index({ buyerId: 1, productId: 1 }, { unique: true });
+
+// Index for faster queries
+bidSchema.index({ productId: 1, amount: -1 });
 
 module.exports = mongoose.model('Bid', bidSchema);

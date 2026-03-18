@@ -1,0 +1,7 @@
+# Keep only README markdown files in git
+*.md
+!README.md
+!**/README.md
+
+# Runtime upload artifacts
+backend/uploads/

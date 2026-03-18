@@ -1,5 +1,14 @@
 const mongoose = require('mongoose');
 
+/**
+ * Product Schema with Concurrency Control
+ * 
+ * Features:
+ * - Optimistic concurrency control via __v (version key)
+ * - Indexed on (status, bidEndDate) for efficient expired product queries
+ * - Indexed on (farmerId, status) for farmer dashboard queries
+ */
+
 // Define the schema for products
 const productSchema = new mongoose.Schema({
   name: {
@@ -25,6 +34,10 @@ const productSchema = new mongoose.Schema({
   video: {
     type: String, // Store the path to the video file
     required: true,
+  },
+  cloudinaryPublicId: {
+    type: String,
+    required: false,
   },
   farmerId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -53,7 +66,11 @@ const productSchema = new mongoose.Schema({
     type: Date,
     default: Date.now, // Automatically set the creation date
   },
-});
+}, { optimisticConcurrency: true });
+
+// Index for faster queries on active products
+productSchema.index({ status: 1, bidEndDate: 1 });
+productSchema.index({ farmerId: 1, status: 1 });
 
 // Method to check if the product bidding has expired
 productSchema.methods.isExpired = function() {

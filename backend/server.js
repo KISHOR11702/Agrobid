@@ -25,28 +25,49 @@ const BidManagementService = require('./services/bidManagementService');
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  ...(process.env.FRONTEND_URLS
+    ? process.env.FRONTEND_URLS.split(',').map(origin => origin.trim()).filter(Boolean)
+    : []),
+  ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL.trim()] : []),
+];
+
+const uniqueAllowedOrigins = [...new Set(allowedOrigins)];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || uniqueAllowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  credentials: true,
+};
+
 // Initialize Socket.IO with CORS configuration
 const io = socketIo(server, {
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["my-custom-header"],
-    credentials: true
-  }
+  cors: corsOptions,
 });
 
 // Make io accessible to routes
 app.set('io', io);
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use('/uploads', (req, res, next) => {
   res.type(mime.getType(req.path));
   next();
 }, express.static(path.join(__dirname, 'uploads')));
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // MongoDB connection
-const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/AgroBidding';
+const mongoURI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/AgroBidding';
 mongoose.connect(mongoURI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
