@@ -79,16 +79,6 @@ const YourBidsPage = () => {
     return new Intl.NumberFormat('en-IN').format(num);
   };
 
-  // Get status color
-  const getStatusColor = (status, isWinning) => {
-    if (isWinning) return '#4CAF50';
-    switch (status) {
-      case 'active': return '#2196F3';
-      case 'lost': return '#f44336';
-      default: return '#757575';
-    }
-  };
-
   // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('token');

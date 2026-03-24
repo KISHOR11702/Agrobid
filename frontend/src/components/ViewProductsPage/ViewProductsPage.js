@@ -6,7 +6,6 @@ import './ViewProductsPage.css';
 function ViewProductsPage() {
   const [products, setProducts] = useState([]);
   const [bids, setBids] = useState([]);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [buyerDetails, setBuyerDetails] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
   const navigate = useNavigate();
@@ -40,7 +39,6 @@ function ViewProductsPage() {
           Authorization: `Bearer ${token}`,
         },
       });
-      setSelectedProduct(productId);
       setBids(response.data); // Bids will include populated buyer details
     } catch (error) {
       console.error('Error fetching bids:', error);

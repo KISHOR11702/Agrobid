@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
@@ -20,29 +20,23 @@ function BuyerDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-  
-    if (!token) {
-      console.error('No token found');
-      navigate('/login');
-      return;
-    }
-
-    fetchDashboardData();
-    setupSocketListeners();
-
-    // Update time every minute
-    const timeInterval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-
-    return () => {
-      clearInterval(timeInterval);
+  const addNotification = useCallback((message, type) => {
+    const notification = {
+      id: Date.now(),
+      message,
+      type,
+      timestamp: new Date().toLocaleTimeString()
     };
-  }, [navigate]);
+    
+    setNotifications(prev => [notification, ...prev.slice(0, 4)]);
+    
+    // Auto remove notification after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== notification.id));
+    }, 5000);
+  }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     const token = localStorage.getItem('token');
     
     try {
@@ -68,6 +62,30 @@ function BuyerDashboard() {
       const products = productsResponse.data || [];
 
       // Calculate dashboard statistics
+      const calculateDashboardStats = (bidsList, productsList) => {
+        const activeBids = bidsList.filter(bid => {
+          const product = productsList.find(p => p._id === bid.productId);
+          return product && new Date(product.bidEndTime) > new Date();
+        });
+
+        const wonAuctions = bidsList.filter(bid => {
+          const product = productsList.find(p => p._id === bid.productId);
+          if (!product || new Date(product.bidEndTime) > new Date()) return false;
+          
+          const highestBid = Math.max(...product.bids.map(b => b.bidAmount));
+          return bid.bidAmount === highestBid;
+        });
+
+        const totalSpent = wonAuctions.reduce((sum, bid) => sum + bid.bidAmount, 0);
+
+        return {
+          totalBids: bidsList.length,
+          activeBids: activeBids.length,
+          wonAuctions: wonAuctions.length,
+          totalSpent: totalSpent
+        };
+      };
+
       const stats = calculateDashboardStats(bids, products);
       setDashboardStats(stats);
 
@@ -86,33 +104,9 @@ function BuyerDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
-  const calculateDashboardStats = (bids, products) => {
-    const activeBids = bids.filter(bid => {
-      const product = products.find(p => p._id === bid.productId);
-      return product && new Date(product.bidEndTime) > new Date();
-    });
-
-    const wonAuctions = bids.filter(bid => {
-      const product = products.find(p => p._id === bid.productId);
-      if (!product || new Date(product.bidEndTime) > new Date()) return false;
-      
-      const highestBid = Math.max(...product.bids.map(b => b.bidAmount));
-      return bid.bidAmount === highestBid;
-    });
-
-    const totalSpent = wonAuctions.reduce((sum, bid) => sum + bid.bidAmount, 0);
-
-    return {
-      totalBids: bids.length,
-      activeBids: activeBids.length,
-      wonAuctions: wonAuctions.length,
-      totalSpent: totalSpent
-    };
-  };
-
-  const setupSocketListeners = () => {
+  const setupSocketListeners = useCallback(() => {
     const socket = io(SOCKET_URL);
     
     socket.on('newBid', (data) => {
@@ -129,23 +123,33 @@ function BuyerDashboard() {
       addNotification(`Your bid on ${data.productName} was accepted!`, 'success');
       fetchDashboardData(); // Refresh data
     });
-  };
-
-  const addNotification = (message, type) => {
-    const notification = {
-      id: Date.now(),
-      message,
-      type,
-      timestamp: new Date().toLocaleTimeString()
+    return () => {
+      socket.disconnect();
     };
-    
-    setNotifications(prev => [notification, ...prev.slice(0, 4)]);
-    
-    // Auto remove notification after 5 seconds
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== notification.id));
-    }, 5000);
-  };
+  }, [addNotification, fetchDashboardData]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+  
+    if (!token) {
+      console.error('No token found');
+      navigate('/login');
+      return;
+    }
+
+    fetchDashboardData();
+    const cleanupSocket = setupSocketListeners();
+
+    // Update time every minute
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+
+    return () => {
+      clearInterval(timeInterval);
+      if (cleanupSocket) cleanupSocket();
+    };
+  }, [navigate, fetchDashboardData, setupSocketListeners]);
   
   const handleLogout = () => {
     localStorage.removeItem('token');

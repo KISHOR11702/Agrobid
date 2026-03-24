@@ -100,7 +100,7 @@ function AvailableProductsPage() {
 
   // Handle auction ended
   const handleAuctionEnded = useCallback((data) => {
-    const { productId, productName, winner, totalBids } = data;
+    const { productId, productName, winner } = data;
     
     // Update product status in UI
     setProducts(prev => prev.map(product => 
@@ -118,7 +118,7 @@ function AvailableProductsPage() {
 
   // Handle personal bid results
   const handleBidResult = useCallback((data) => {
-    const { type, productName, message } = data;
+    const { type, message } = data;
     
     // Show personalized notification
     if (type === 'winner') {

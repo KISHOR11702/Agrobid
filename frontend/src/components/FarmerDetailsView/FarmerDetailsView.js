@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import './FarmerDetailsView.css';
@@ -11,11 +11,7 @@ const FarmerDetailsView = () => {
   const { farmerId } = useParams();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchFarmerData();
-  }, [farmerId]);
-
-  const fetchFarmerData = async () => {
+  const fetchFarmerData = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -43,7 +39,11 @@ const FarmerDetailsView = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [farmerId]);
+
+  useEffect(() => {
+    fetchFarmerData();
+  }, [fetchFarmerData]);
 
   const formatNumber = (num) => {
     return new Intl.NumberFormat('en-IN').format(num);

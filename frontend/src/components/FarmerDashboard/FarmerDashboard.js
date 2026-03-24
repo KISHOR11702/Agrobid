@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import socketService from '../../services/socketService';
@@ -6,7 +6,6 @@ import './FarmerDashboard.css';
 
 function FarmerDashboard() {
   const [farmerName, setFarmerName] = useState('');
-  const [farmerDetails, setFarmerDetails] = useState({});
   const [dashboardStats, setDashboardStats] = useState({
     totalProducts: 0,
     activeAuctions: 0,
@@ -19,24 +18,22 @@ function FarmerDashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      console.error('No token found');
-      navigate('/login');
-      return;
-    }
-
-    fetchDashboardData(token);
-    setupSocketListeners();
-
-    return () => {
-      socketService.disconnect();
+  const addNotification = useCallback((message, type) => {
+    const notification = {
+      id: Date.now(),
+      message,
+      type,
+      timestamp: new Date()
     };
-  }, [navigate]);
+    setNotifications(prev => [notification, ...prev.slice(0, 4)]);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== notification.id));
+    }, 5000);
+  }, []);
 
-  const fetchDashboardData = async (token) => {
+  const fetchDashboardData = useCallback(async (token) => {
     try {
       setLoading(true);
 
@@ -45,9 +42,6 @@ function FarmerDashboard() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setFarmerName(farmerResponse.data.farmerName);
-
-      // Fetch farmer details
-      setFarmerDetails(farmerResponse.data);
 
       // Fetch products for statistics
       const productsResponse = await axios.get('http://localhost:5000/api/products', {
@@ -68,6 +62,43 @@ function FarmerDashboard() {
       );
 
       // Calculate statistics
+      const calculateDashboardStats = (productsList, bidsList) => {
+        const now = new Date();
+        const activeAuctions = productsList.filter(p => new Date(p.bidEndDate) > now && p.status === 'active');
+        const soldProducts = productsList.filter(p => p.status === 'sold');
+        const totalRevenue = soldProducts.reduce((sum, product) => sum + (product.highestBid?.amount || 0), 0);
+        
+        // Recent bids (last 10)
+        const recentBids = bidsList
+          .sort((a, b) => new Date(b.createdAt || b.timestamp) - new Date(a.createdAt || a.timestamp))
+          .slice(0, 10);
+
+        // Recent activity
+        const recentActivity = [
+          ...productsList.slice(-5).map(p => ({
+            type: 'product_added',
+            message: `Added product "${p.name}"`,
+            timestamp: p.createdAt,
+            icon: '🌾'
+          })),
+          ...recentBids.slice(0, 5).map(b => ({
+            type: 'bid_received',
+            message: `New bid ₹${b.amount || b.bidAmount} on "${b.productName}"`,
+            timestamp: b.createdAt || b.timestamp,
+            icon: '💰'
+          }))
+        ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 8);
+
+        return {
+          totalProducts: productsList.length,
+          activeAuctions: activeAuctions.length,
+          soldProducts: soldProducts.length,
+          totalRevenue,
+          recentBids,
+          recentActivity
+        };
+      };
+
       const stats = calculateDashboardStats(products, allBids);
       setDashboardStats(stats);
 
@@ -79,46 +110,9 @@ function FarmerDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
-  const calculateDashboardStats = (products, bids) => {
-    const now = new Date();
-    const activeAuctions = products.filter(p => new Date(p.bidEndDate) > now && p.status === 'active');
-    const soldProducts = products.filter(p => p.status === 'sold');
-    const totalRevenue = soldProducts.reduce((sum, product) => sum + (product.highestBid?.amount || 0), 0);
-    
-    // Recent bids (last 10)
-    const recentBids = bids
-      .sort((a, b) => new Date(b.createdAt || b.timestamp) - new Date(a.createdAt || a.timestamp))
-      .slice(0, 10);
-
-    // Recent activity
-    const recentActivity = [
-      ...products.slice(-5).map(p => ({
-        type: 'product_added',
-        message: `Added product "${p.name}"`,
-        timestamp: p.createdAt,
-        icon: '🌾'
-      })),
-      ...recentBids.slice(0, 5).map(b => ({
-        type: 'bid_received',
-        message: `New bid ₹${b.amount || b.bidAmount} on "${b.productName}"`,
-        timestamp: b.createdAt || b.timestamp,
-        icon: '💰'
-      }))
-    ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 8);
-
-    return {
-      totalProducts: products.length,
-      activeAuctions: activeAuctions.length,
-      soldProducts: soldProducts.length,
-      totalRevenue,
-      recentBids,
-      recentActivity
-    };
-  };
-
-  const setupSocketListeners = () => {
+  const setupSocketListeners = useCallback(() => {
     socketService.connect();
     
     const socket = socketService.getSocket();
@@ -138,22 +132,24 @@ function FarmerDashboard() {
         addNotification(`⏰ Auction ended for "${data.productName}"`, 'warning');
       });
     }
-  };
+  }, [addNotification, fetchDashboardData]);
 
-  const addNotification = (message, type) => {
-    const notification = {
-      id: Date.now(),
-      message,
-      type,
-      timestamp: new Date()
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      console.error('No token found');
+      navigate('/login');
+      return;
+    }
+
+    fetchDashboardData(token);
+    setupSocketListeners();
+
+    return () => {
+      socketService.disconnect();
     };
-    setNotifications(prev => [notification, ...prev.slice(0, 4)]);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== notification.id));
-    }, 5000);
-  };
+  }, [navigate, fetchDashboardData, setupSocketListeners]);
 
   const handleLogout = () => {
     localStorage.removeItem('token'); // Clear token on logout

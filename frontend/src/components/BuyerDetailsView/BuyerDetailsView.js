@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import './BuyerDetailsView.css';
@@ -14,37 +14,7 @@ const BuyerDetailsView = () => {
   // Ensure buyerBids is always an array
   const safeBuyerBids = Array.isArray(buyerBids) ? buyerBids : [];
 
-  useEffect(() => {
-    fetchBuyerData();
-  }, [buyerId]);
-
-  const fetchBuyerData = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      // First try to get buyer details
-      try {
-        const detailsResponse = await axios.get(`http://localhost:5000/api/buyer/details/${buyerId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setBuyerDetails(detailsResponse.data);
-      } catch (detailsError) {
-        console.error('Error fetching buyer details:', detailsError);
-        setError('Failed to fetch buyer details');
-      }
-      
-      // Then fetch bids (which might also include buyer details)
-      fetchBuyerBids();
-      
-    } catch (error) {
-      console.error('Error fetching buyer data:', error);
-      setError('Failed to fetch buyer information');
-      setLoading(false);
-    }
-  };
-
-  const fetchBuyerBids = async () => {
+  const fetchBuyerBids = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -79,19 +49,40 @@ const BuyerDetailsView = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [buyerId]);
+
+  const fetchBuyerData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      // First try to get buyer details
+      try {
+        const detailsResponse = await axios.get(`http://localhost:5000/api/buyer/details/${buyerId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setBuyerDetails(detailsResponse.data);
+      } catch (detailsError) {
+        console.error('Error fetching buyer details:', detailsError);
+        setError('Failed to fetch buyer details');
+      }
+      
+      // Then fetch bids (which might also include buyer details)
+      fetchBuyerBids();
+      
+    } catch (error) {
+      console.error('Error fetching buyer data:', error);
+      setError('Failed to fetch buyer information');
+      setLoading(false);
+    }
+  }, [buyerId, fetchBuyerBids]);
+
+  useEffect(() => {
+    fetchBuyerData();
+  }, [fetchBuyerData]);
 
   const formatNumber = (num) => {
     return new Intl.NumberFormat('en-IN').format(num);
-  };
-
-  const getStatusColor = (status, isWinning) => {
-    if (isWinning) return '#4CAF50';
-    switch (status) {
-      case 'active': return '#2196F3';
-      case 'lost': return '#f44336';
-      default: return '#757575';
-    }
   };
 
   const handleLogout = () => {

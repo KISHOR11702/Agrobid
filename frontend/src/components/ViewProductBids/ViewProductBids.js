@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import './ViewProductBids.css';
@@ -12,11 +12,7 @@ const ViewProductBids = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchProductAndBids();
-  }, [productId]);
-
-  const fetchProductAndBids = async () => {
+  const fetchProductAndBids = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -60,7 +56,11 @@ const ViewProductBids = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId]);
+
+  useEffect(() => {
+    fetchProductAndBids();
+  }, [fetchProductAndBids]);
 
   const formatNumber = (num) => {
     return new Intl.NumberFormat('en-IN').format(num);
